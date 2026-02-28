@@ -29,7 +29,7 @@ const Comment = ({threadId, currentUserImg, currentUserId}: Props) => {
     });
 
     const onSubmit = async (values: z.infer<typeof CommentValidation>) => {
-        console.log(values)
+        
         await addCommentToThread(
             threadId, values.thread, JSON.parse(currentUserId), pathName,
         );
@@ -71,7 +71,7 @@ const Comment = ({threadId, currentUserImg, currentUserId}: Props) => {
                 />
 
                 <Button type='submit' className='comment-form_btn'
-                        onClick={() => console.log("clicked")}>
+                        onClick={() => {}}>
                     Reply
                 </Button>
             </form>

@@ -2,6 +2,7 @@ import {fetchUserPosts} from "@/lib/actions/user.actions";
 import {redirect} from "next/navigation";
 import Thread from "@/lib/models/thread.model";
 import ThreadCard from "@/components/cards/ThreadCard";
+import {fetchCommunityPosts} from "@/lib/actions/community.actions";
 
 interface Props {
     currentUserId: string;
@@ -14,11 +15,16 @@ const ThreadsTab = async ({
                               accountId,
                               accountType
                           }: Props) => {
-    let result = await fetchUserPosts(accountId)
+    let result: any;
+    if (accountType === "Community") {
+        result = await fetchCommunityPosts(accountId)
+    } else {
+        result = await fetchUserPosts(accountId)
+    }
 
     if (!result) redirect("/")
 
-    console.log(result)
+    
 
     return (
         <section className="mt-9 lex flex-col gap-10">
@@ -30,21 +36,20 @@ const ThreadsTab = async ({
                     parentId={thread.parentId}
                     content={thread.text}
                     author={
-                        accountType === 'User' ?
-                            {
-                                name: result.name,
-                                image: result.image,
-                                id: result.id
-                            } :
-                            {
-                                name: thread.name,
-                                image: thread.image,
-                                id: thread.id
+                        accountType === "User"
+                            ? { name: result.name, image: result.image, id: result.id }
+                            : {
+                                name: thread.author.name,
+                                image: thread.author.image,
+                                id: thread.author.id,
                             }
                     }
                     community={thread.community}
                     createdAt={thread.createdAt}
                     comments={thread.children}
+                    initialLikes={(thread.likes || []).map((like: any) => 
+                        typeof like === 'string' ? like : String(like)
+                    )}
                 />
             ))}
         </section>

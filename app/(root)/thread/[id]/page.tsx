@@ -16,12 +16,7 @@ const page = async ({params}: { params: { id: string } }) => {
     const userInfo = await fetchUser(user.id);
     if (!userInfo?.onboarded) redirect('/onboarding');
 
-    console.log(user);
-    console.log(userInfo);
-
     const thread = await fetchThreadById(id);
-
-    console.log(thread);
 
     return (
         <section>
@@ -36,6 +31,10 @@ const page = async ({params}: { params: { id: string } }) => {
                     community={thread.community}
                     createdAt={thread.createdAt}
                     comments={thread.children}
+                    initialLikes={(thread.likes || []).map((like: any) =>
+                        typeof like === 'string' ? like : String(like)
+                    )}
+                    showCommentPreview={false}
                 />
             </div>
 
@@ -60,6 +59,9 @@ const page = async ({params}: { params: { id: string } }) => {
                         createdAt={childItem.createdAt}
                         comments={childItem.children}
                         isComment={true}
+                        initialLikes={(childItem.likes || []).map((like: any) =>
+                            typeof like === 'string' ? like : String(like)
+                        )}
                     />
                 ))}
             </div>

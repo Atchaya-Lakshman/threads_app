@@ -1,20 +1,67 @@
 import mongoose from "mongoose";
 
-let isConnected = false; // variable to check if mongoose connected
+let isConnected = false;
 
-export const connectToDB = async () => {
-    mongoose.set('strictQuery', true);
+interface ConnectionError extends Error {
+    name: string;
+    message: string;
+}
 
-    if (!process.env.MONGODB_URL) return console.error("MONGODB_URL not found");
+/**
+ * Establishes a connection to MongoDB
+ * Implements singleton pattern to reuse existing connections
+ * @throws Error if MONGODB_URL is not set
+ */
+export const connectToDB = async (): Promise<void> => {
+    if (isConnected) {
+        console.debug("Using existing MongoDB connection");
+        return;
+    }
 
-    if (isConnected) return;
+    const mongodbUrl = process.env.MONGODB_URL;
+
+    if (!mongodbUrl) {
+        throw new Error(
+            "MONGODB_URL environment variable is not set. Please configure it in your .env.local file"
+        );
+    }
+
+    mongoose.set("strictQuery", true);
 
     try {
-        await mongoose.connect(process.env.MONGODB_URL);
-        isConnected = true;
+        await mongoose.connect(mongodbUrl);
 
-        console.log("Connected to MongoDB");
+        isConnected = true;
+        console.log("✓ Connected to MongoDB successfully");
     } catch (error) {
-        console.log(error);
+        const connectionError = error as ConnectionError;
+        console.error(
+            `✗ MongoDB connection failed: ${connectionError.name} - ${connectionError.message}`
+        );
+        throw new Error(
+            `Failed to connect to MongoDB: ${connectionError.message}`
+        );
     }
-}
+};
+
+/**
+ * Closes the MongoDB connection
+ * Useful for cleanup in testing or graceful shutdown
+ */
+export const disconnectFromDB = async (): Promise<void> => {
+    if (!isConnected) return;
+
+    try {
+        await mongoose.disconnect();
+        isConnected = false;
+        console.log("✓ Disconnected from MongoDB");
+    } catch (error) {
+        const disconnectError = error as ConnectionError;
+        console.error(
+            `✗ Failed to disconnect from MongoDB: ${disconnectError.message}`
+        );
+        throw new Error(
+            `Failed to disconnect from MongoDB: ${disconnectError.message}`
+        );
+    }
+};

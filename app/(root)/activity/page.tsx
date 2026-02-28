@@ -1,7 +1,6 @@
 import {currentUser} from "@clerk/nextjs/server";
-import fetchUsers, {fetchUser, getActivity} from "@/lib/actions/user.actions";
+import {fetchUser, getActivity} from "@/lib/actions/user.actions";
 import {redirect} from "next/navigation";
-import UserCard from "@/components/cards/UserCard";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -14,7 +13,7 @@ const page = async () => {
 
     // getActivity
     const activities = await getActivity(userInfo._id);
-    console.log("111", activities);
+    
 
 
     return (

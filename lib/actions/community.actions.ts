@@ -72,7 +72,7 @@ export async function fetchCommunityPosts(id: string) {
     try {
         await connectToDB();
 
-        return await Community.findById(id).populate({
+        const community = await Community.findById(id).populate({
             path: "threads",
             model: Thread,
             populate: [
@@ -92,6 +92,9 @@ export async function fetchCommunityPosts(id: string) {
                 },
             ],
         });
+        
+        // Serialize to plain object for client components
+        return community ? JSON.parse(JSON.stringify(community)) : null;
     } catch (error) {
         // Handle any errors
         console.error("Error fetching community posts:", error);

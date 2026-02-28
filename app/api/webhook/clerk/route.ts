@@ -61,7 +61,7 @@ export const POST = async (request: Request) => {
 
     const eventType: EventType = event?.type!;
 
-    console.log("eventType", eventType);
+    // eventType received
 
     // Listen organization creation event
     if (eventType === "organization.created") {
@@ -84,7 +84,7 @@ export const POST = async (request: Request) => {
 
             return NextResponse.json({message: "User created"}, {status: 201});
         } catch (err) {
-            console.log(err);
+            console.error(err);
             return NextResponse.json(
                 {message: "Internal Server Error"},
                 {status: 500}
@@ -98,14 +98,14 @@ export const POST = async (request: Request) => {
     if (eventType === "organizationInvitation.created") {
         try {
             // Resource: https://clerk.com/docs/reference/backend-api/tag/Organization-Invitations#operation/CreateOrganizationInvitation
-            console.log("Invitation created", event?.data);
+            // Invitation created (removed verbose log)
 
             return NextResponse.json(
                 {message: "Invitation created"},
                 {status: 201}
             );
         } catch (err) {
-            console.log(err);
+            console.error(err);
 
             return NextResponse.json(
                 {message: "Internal Server Error"},
@@ -120,7 +120,7 @@ export const POST = async (request: Request) => {
             // Resource: https://clerk.com/docs/reference/backend-api/tag/Organization-Memberships#operation/CreateOrganizationMembership
             // Show what event?.data sends from above resource
             const {organization, public_user_data} = event?.data;
-            console.log("created", event?.data);
+            // created event
 
             // @ts-ignore
             await addMemberToCommunity(organization.id, public_user_data.user_id);
@@ -130,7 +130,7 @@ export const POST = async (request: Request) => {
                 {status: 201}
             );
         } catch (err) {
-            console.log(err);
+            console.error(err);
 
             return NextResponse.json(
                 {message: "Internal Server Error"},
@@ -145,14 +145,14 @@ export const POST = async (request: Request) => {
             // Resource: https://clerk.com/docs/reference/backend-api/tag/Organization-Memberships#operation/DeleteOrganizationMembership
             // Show what event?.data sends from above resource
             const {organization, public_user_data} = event?.data;
-            console.log("removed", event?.data);
+            // removed event
 
             // @ts-ignore
             await removeUserFromCommunity(public_user_data.user_id, organization.id);
 
             return NextResponse.json({message: "Member removed"}, {status: 201});
         } catch (err) {
-            console.log(err);
+            console.error(err);
 
             return NextResponse.json(
                 {message: "Internal Server Error"},
@@ -167,14 +167,14 @@ export const POST = async (request: Request) => {
             // Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/UpdateOrganization
             // Show what event?.data sends from above resource
             const {id, logo_url, name, slug} = event?.data;
-            console.log("updated", event?.data);
+            // updated event
 
             // @ts-ignore
             await updateCommunityInfo(id, name, slug, logo_url);
 
             return NextResponse.json({message: "Member removed"}, {status: 201});
         } catch (err) {
-            console.log(err);
+            console.error(err);
 
             return NextResponse.json(
                 {message: "Internal Server Error"},
@@ -189,7 +189,7 @@ export const POST = async (request: Request) => {
             // Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/DeleteOrganization
             // Show what event?.data sends from above resource
             const {id} = event?.data;
-            console.log("deleted", event?.data);
+            // deleted event
 
             // @ts-ignore
             await deleteCommunity(id);
@@ -199,7 +199,7 @@ export const POST = async (request: Request) => {
                 {status: 201}
             );
         } catch (err) {
-            console.log(err);
+            console.error(err);
 
             return NextResponse.json(
                 {message: "Internal Server Error"},

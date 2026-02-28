@@ -1,22 +1,50 @@
 "use server";
 
-import {revalidatePath} from "next/cache";
+import { revalidatePath } from "next/cache";
+import { FilterQuery } from "mongoose";
 
-import {connectToDB} from "../mongoose";
+import { connectToDB } from "../mongoose";
 
 import User from "../models/user.model";
 import Thread from "../models/thread.model";
 import Community from "../models/community.model";
 
-export async function fetchThreads(pageNumber = 1, pageSize = 20) {
+interface FetchThreadsParams {
+    pageNumber?: number;
+    pageSize?: number;
+    searchString?: string;
+}
+
+interface FetchThreadsResult {
+    posts: any[];
+    isNext: boolean;
+}
+
+/**
+ * Fetch threads with optional search and pagination
+ */
+export async function fetchThreads({
+    pageNumber = 1,
+    pageSize = 30,
+    searchString = "",
+}: FetchThreadsParams = {}): Promise<FetchThreadsResult> {
     await connectToDB();
 
-    // Calculate the number of posts to skip based on the page number and page size.
     const skipAmount = (pageNumber - 1) * pageSize;
 
-    // Create a query to fetch the posts that have no parent (top-level threads) (a thread that is not a comment/reply).
-    const postsQuery = Thread.find({parentId: {$in: [null, undefined]}})
-        .sort({createdAt: "desc"})
+    // Build query with optional search
+    const query: FilterQuery<typeof Thread> = {
+        parentId: { $in: [null, undefined] },
+    };
+
+    // Add search filter if provided
+    if (searchString.trim()) {
+        const searchRegex = new RegExp(searchString, "i");
+        query.text = { $regex: searchRegex };
+    }
+
+    const postsQuery = Thread.find(query)
+        .sort({ createdAt: "desc" })
         .skip(skipAmount)
         .limit(pageSize)
         .populate({
@@ -28,24 +56,23 @@ export async function fetchThreads(pageNumber = 1, pageSize = 20) {
             model: Community,
         })
         .populate({
-            path: "children", // Populate the children field
+            path: "children",
             populate: {
-                path: "author", // Populate the author field within children
+                path: "author",
                 model: User,
-                select: "_id name parentId image", // Select only _id and username fields of the author
+                select: "_id name parentId image",
             },
         });
 
-    // Count the total number of top-level posts (threads) i.e., threads that are not comments.
-    const totalPostsCount = await Thread.countDocuments({
-        parentId: {$in: [null, undefined]},
-    }); // Get the total count of posts
-
+    const totalPostsCount = await Thread.countDocuments(query);
     const posts = await postsQuery.exec();
-
+    
+    // Serialize posts to plain objects for client components
+    const serializedPosts = JSON.parse(JSON.stringify(posts));
+    
     const isNext = totalPostsCount > skipAmount + posts.length;
 
-    return {posts, isNext};
+    return { posts: serializedPosts, isNext };
 }
 
 interface Params {
@@ -193,7 +220,8 @@ export async function fetchThreadById(threadId: string) {
             })
             .exec();
 
-        return thread;
+        // Serialize thread to plain object for client components
+        return thread ? JSON.parse(JSON.stringify(thread)) : null;
     } catch (err) {
         console.error("Error while fetching thread:", err);
         throw new Error("Unable to fetch thread");
@@ -236,5 +264,88 @@ export async function addCommentToThread(
     } catch (err) {
         console.error("Error while adding comment:", err);
         throw new Error("Unable to add comment");
+    }
+}
+
+/**
+ * Toggle like on a thread
+ * Adds or removes the current user from the thread's likes array
+ * Each user can only like once
+ */
+export async function toggleThreadLike(
+    threadId: string,
+    userId: string,
+    path: string
+) {
+    try {
+        await connectToDB();
+
+        // Validate user
+        if (!userId) {
+            throw new Error("User must be signed in to like a thread");
+        }
+
+        // Check if user has already liked
+        const thread = await Thread.findById(threadId);
+
+        if (!thread) {
+            throw new Error("Thread not found");
+        }
+
+        // Check if user ID exists in likes array (normalize existing values to string for comparison)
+        const existingLikes = (thread.likes || []).map((l: any) => String(l));
+        const hasLiked = existingLikes.includes(userId);
+
+        let updatedThread;
+
+        if (hasLiked) {
+            // Remove like
+            updatedThread = await Thread.findByIdAndUpdate(
+                threadId,
+                { $pull: { likes: userId } },
+                { new: true }
+            );
+        } else {
+            // Add like
+            updatedThread = await Thread.findByIdAndUpdate(
+                threadId,
+                { $addToSet: { likes: userId } },
+                { new: true }
+            );
+        }
+
+        // If update did not return a document, fetch it
+        if (!updatedThread) {
+            updatedThread = await Thread.findById(threadId);
+        }
+
+        // Normalize likes to strings to avoid ObjectId/string mismatches
+        let normalizedLikes = (updatedThread?.likes || []).map((l: any) => String(l));
+        // If normalization changed the stored values, persist the normalized array
+        const needsNormalization = JSON.stringify(normalizedLikes) !== JSON.stringify(updatedThread?.likes || []);
+        if (needsNormalization) {
+            updatedThread = await Thread.findByIdAndUpdate(
+                threadId,
+                { $set: { likes: normalizedLikes } },
+                { new: true }
+            );
+            normalizedLikes = (updatedThread?.likes || []).map((l: any) => String(l));
+        }
+
+        // Calculate if liked based on updated thread
+        const isNowLiked = normalizedLikes.includes(userId);
+
+        // Debug: like toggled (removed verbose logging in production)
+
+        revalidatePath(path);
+
+        return {
+            success: true,
+            isLiked: isNowLiked,
+            likeCount: updatedThread?.likes?.length || 0,
+        };
+    } catch (error) {
+        console.error("Error toggling like:", error);
+        throw new Error("Failed to toggle like");
     }
 }
