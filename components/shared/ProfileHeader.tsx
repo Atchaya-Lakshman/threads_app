@@ -11,13 +11,10 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader = ({
-                           accountId,
-                           authUserId,
                            name,
                            username,
                            imgUrl,
-                           bio,
-                           type
+                           bio
                        }: ProfileHeaderProps) => {
     return (
         <div className="flex w-full flex-col justify-start">

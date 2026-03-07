@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-    const thread = await Thread.findById(id).lean();
+    const thread: any = await Thread.findById(id).lean();
     if (!thread) return NextResponse.json({ error: "not found" }, { status: 404 });
 
     return NextResponse.json({ likes: thread.likes || [] });

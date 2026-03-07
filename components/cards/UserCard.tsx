@@ -1,6 +1,5 @@
 'use client'
 
-import Link from "next/link";
 import Image from "next/image";
 import {useRouter} from "next/navigation";
 import {Button} from "@/components/ui/button";
@@ -18,7 +17,6 @@ const UserCard = ({
                       name,
                       username,
                       imgUrl,
-                      personType,
                   }: Props) => {
     const router = useRouter();
 
@@ -39,7 +37,7 @@ const UserCard = ({
                 </div>
             </div>
 
-            <Button className="user-card_btn" onClick={(event) => {
+            <Button className="user-card_btn" onClick={() => {
                 router.push(`/profile/${id}`);
             }}>
                 View

@@ -87,26 +87,29 @@ export async function createThread({text, author, communityId, path}: Params
     try {
         await connectToDB();
 
-        const communityIdObject = await Community.findOne(
-            {id: communityId},
-            {_id: 1}
-        );
+        // Resolve author: accept Clerk id (User.id) or Mongo _id
+        const authorDoc = await User.findOne({ id: author }, { _id: 1 });
+        const authorObjectId = authorDoc ? authorDoc._id : author;
+
+        const communityDoc = communityId
+            ? await Community.findOne({ id: communityId }, { _id: 1 })
+            : null;
 
         const createdThread = await Thread.create({
             text,
-            author,
-            community: communityIdObject, // Assign communityId if provided, or leave it null for personal account
+            author: authorObjectId,
+            community: communityDoc ? communityDoc._id : null, // Assign community _id if provided
         });
 
-        // Update User model
-        await User.findByIdAndUpdate(author, {
-            $push: {threads: createdThread._id},
+        // Update User model (push thread id onto user's threads array)
+        await User.findByIdAndUpdate(authorObjectId, {
+            $push: { threads: createdThread._id },
         });
 
-        if (communityIdObject) {
-            // Update Community model
-            await Community.findByIdAndUpdate(communityIdObject, {
-                $push: {threads: createdThread._id},
+        if (communityDoc) {
+            // Update Community model using its _id
+            await Community.findByIdAndUpdate(communityDoc._id, {
+                $push: { threads: createdThread._id },
             });
         }
 
@@ -184,6 +187,24 @@ export async function deleteThread(id: string, path: string): Promise<void> {
     }
 }
 
+export async function updateThread(id: string, newText: string, path: string) {
+    try {
+        await connectToDB();
+
+        const thread = await Thread.findById(id);
+        if (!thread) throw new Error('Thread not found');
+
+        thread.text = newText;
+        await thread.save();
+
+        revalidatePath(path);
+
+        return JSON.parse(JSON.stringify(thread));
+    } catch (error: any) {
+        throw new Error(`Failed to update thread: ${error.message}`);
+    }
+}
+
 export async function fetchThreadById(threadId: string) {
     await connectToDB();
 
@@ -245,9 +266,13 @@ export async function addCommentToThread(
         }
 
         // Create the new comment thread
+        // Resolve the comment author (support Clerk id or Mongo _id)
+        const authorDoc = await User.findOne({ id: userId }, { _id: 1 });
+        const authorObjectId = authorDoc ? authorDoc._id : userId;
+
         const commentThread = new Thread({
             text: commentText,
-            author: userId,
+            author: authorObjectId,
             parentId: threadId, // Set the parentId to the original thread's ID
         });
 

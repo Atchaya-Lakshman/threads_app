@@ -1,5 +1,5 @@
 import {currentUser} from "@clerk/nextjs/server";
-import fetchUsers, {fetchUser} from "@/lib/actions/user.actions";
+import {fetchUser} from "@/lib/actions/user.actions";
 import {redirect} from "next/navigation";
 import {fetchCommunities} from "@/lib/actions/community.actions";
 import CommunityCard from "@/components/cards/CommunityCard";

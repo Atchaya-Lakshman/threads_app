@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import * as z from "zod";
 import Image from "next/image";
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { isBase64Image } from "@/lib/utils";
 import { useUploadThing } from "@/lib/uploadThing";
 import { updateUser } from "@/lib/actions/user.actions";
@@ -120,7 +120,7 @@ const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
                     return;
                 }
 
-                imageUrl = uploadResult[0].url || uploadResult[0].ufsUrl;
+                imageUrl = uploadResult[0].ufsUrl;
             }
 
             // Update user profile

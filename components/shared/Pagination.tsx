@@ -20,29 +20,19 @@ export default function Pagination({
     isNext,
 }: PaginationProps) {
     const router = useRouter();
-    const searchParams = useSearchParams();
+    const searchParams = useSearchParams(); // This is the key
 
     const handleNavigation = (direction: 'next' | 'prev') => {
-        const nextPageNumber =
-            direction === 'next' ? pageNumber + 1 : Math.max(1, pageNumber - 1);
+        const nextPageNumber = direction === 'next' ? pageNumber + 1 : Math.max(1, pageNumber - 1);
 
-        // Build URL with search params if they exist
-        const query = searchParams.get('q');
-        const pathWithPage =
-            path === '/'
-                ? `/`
-                : `/${path}`;
+        // 1. Create a new URLSearchParams object from the CURRENT URL
+        const params = new URLSearchParams(searchParams.toString());
 
-        const url = new URL(
-            `${pathWithPage}?page=${nextPageNumber}`,
-            window.location.origin
-        );
+        // 2. Update ONLY the page number, keeping the 'q' (search) intact
+        params.set('page', nextPageNumber.toString());
 
-        if (query) {
-            url.searchParams.set('q', query);
-        }
-
-        router.push(url.toString());
+        // 3. Push the complete string (e.g., /?q=coding&page=2)
+        router.push(`${path}?${params.toString()}`);
     };
 
     if (pageNumber === 1 && !isNext) {
@@ -60,11 +50,11 @@ export default function Pagination({
                 <Image
                     src='/assets/arrow-left.svg'
                     alt='previous'
-                    width={16}
-                    height={16}
+                    width={28}
+                    height={28}
                     className='object-contain'
                 />
-                <span>Previous</span>
+                <span className="text-gray-1">Previous</span>
             </button>
 
             <span className='pagination_page-number'>
@@ -77,12 +67,12 @@ export default function Pagination({
                 className='pagination_button'
                 aria-label='Next page'
             >
-                <span>Next</span>
+                <span className="text-gray-1">Next</span>
                 <Image
                     src='/assets/arrow-right.svg'
                     alt='next'
-                    width={16}
-                    height={16}
+                    width={28}
+                    height={28}
                     className='object-contain'
                 />
             </button>

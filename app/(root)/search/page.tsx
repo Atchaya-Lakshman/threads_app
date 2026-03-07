@@ -21,12 +21,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const searchQuery = params?.q || "";
 
     // Fetch users with search
-    const results = await fetchUsers({
+    const results = (await fetchUsers({
         userId: user.id,
         searchString: searchQuery,
         pageNumber,
         pageSize: 25,
-    });
+    })) || { users: [], isNext: false };
 
     return (
         <section>

@@ -16,9 +16,11 @@ export default async function Home({ searchParams }: HomeProps) {
     const pageNumber = params?.page ? +params.page : 1;
     const searchQuery = params?.q || "";
 
+    console.log("searchQuery", searchQuery, "pageNumber", pageNumber);
+
     const result = await fetchThreads({
         pageNumber,
-        pageSize: 30,
+        pageSize: 20,
         searchString: searchQuery,
     });
 
@@ -26,8 +28,10 @@ export default async function Home({ searchParams }: HomeProps) {
         <>
             <h1 className="head-text text-left">Home</h1>
 
-            <div className="mt-9 flex gap-3 flex-col gap-9">
-                <Searchbar routeType="home" />
+            // Inside your Home export default async function
+            <div className="mt-9 flex gap-3 flex-col">
+                {/* Change "home" to "/" so the URL becomes /?q=... instead of /home?q=... */}
+                <Searchbar routeType="/" />
             </div>
 
             <section className="mt-9 flex flex-col gap-10">

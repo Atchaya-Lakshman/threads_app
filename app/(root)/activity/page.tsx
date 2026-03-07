@@ -12,7 +12,7 @@ const page = async () => {
     if (!userInfo?.onboarded) redirect("/onboarding");
 
     // getActivity
-    const activities = await getActivity(userInfo._id);
+    const activities = (await getActivity(String(userInfo.id))) || [];
     
 
 

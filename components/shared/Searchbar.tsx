@@ -1,94 +1,71 @@
-'use client';
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import Image from 'next/image';
-import { useDebounce } from '@/lib/hooks';
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 
-interface SearchbarProps {
-    routeType: 'search' | 'home';
-}
-
-/**
- * Searchbar Component
- * Provides search functionality for both user search and thread search
- * - Debounced search input to reduce API calls
- * - Dynamic routing based on routeType
- * - Search parameter handling via URL
- */
-export default function Searchbar({ routeType }: SearchbarProps) {
+export default function Searchbar({ routeType }: { routeType: string }) {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [search, setSearch] = useState('');
 
-    // Get initial search query from URL params
+    const queryInUrl = searchParams.get("q") || "";
+    const [search, setSearch] = useState(queryInUrl);
+
+    // Sync local state if URL changes externally
     useEffect(() => {
-        const query = searchParams.get('q') || '';
-        setSearch(query);
-    }, [searchParams]);
+        setSearch(queryInUrl);
+    }, [queryInUrl]);
 
-    // Debounce the search input
-    const debouncedSearch = useDebounce(search, 300);
-
-    // Handle search updates
     useEffect(() => {
-        // Determine the base path
-        const basePath = routeType === 'home' ? '/' : `/${routeType}`;
+        const delayDebounceFn = setTimeout(() => {
+            const params = new URLSearchParams(searchParams.toString());
 
-        if (debouncedSearch) {
-            router.push(`${basePath}?q=${encodeURIComponent(debouncedSearch)}`);
-        } else if (searchParams.has('q')) {
-            // Clear search if input is empty
-            router.push(basePath);
-        }
-    }, [debouncedSearch, routeType, router, searchParams]);
+            if (search !== queryInUrl) {
+                if (search) {
+                    params.set("q", search);
+                } else {
+                    params.delete("q");
+                }
+                params.set("page", "1");
+                router.push(`${routeType === 'home' ? '/' : `/${routeType}`}?${params.toString()}`);
+            }
+        }, 300);
 
-    const handleChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setSearch(e.target.value);
-        },
-        []
-    );
-
-    const handleClear = useCallback(() => {
-        setSearch('');
-        const basePath = routeType === 'home' ? '/' : `/${routeType}`;
-        router.push(basePath);
-    }, [routeType, router]);
+        return () => clearTimeout(delayDebounceFn);
+    }, [search, queryInUrl, router, routeType, searchParams]);
 
     return (
-        <div className='searchbar'>
-            <Image
-                src='/assets/search.svg'
-                alt='search'
-                width={24}
-                height={24}
-                className='object-contain'
-            />
+        <div className='relative flex w-full items-center'>
+            {/* Search Icon */}
+            <div className="absolute left-4 flex items-center pointer-events-none">
+                <Image
+                    src="/assets/search.svg"
+                    alt="search"
+                    width={20}
+                    height={20}
+                    className="opacity-50"
+                />
+            </div>
+
             <input
                 type='text'
-                placeholder={
-                    routeType === 'search'
-                        ? 'Search users...'
-                        : 'Search threads...'
-                }
                 value={search}
-                onChange={handleChange}
-                className='no-focus searchbar_input'
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder='Search threads, people, or tags...'
+                className='w-full rounded-xl bg-dark-3 py-3 pl-12 pr-10 text-base-regular text-light-1 outline-none ring-1 ring-transparent transition-all focus:ring-primary-500 focus:bg-dark-2'
             />
 
+            {/* Clear Button (The "X") */}
             {search && (
                 <button
-                    onClick={handleClear}
-                    className='ml-auto flex-shrink-0 text-light-2 hover:text-light-1 transition-colors'
-                    aria-label='Clear search'
+                    onClick={() => setSearch("")}
+                    className="absolute right-4 flex items-center hover:opacity-80 transition-opacity"
                 >
                     <Image
-                        src='/assets/close.svg'
-                        alt='clear'
-                        width={20}
-                        height={20}
-                        className='object-contain'
+                        src="/assets/close.svg" // Or a generic X icon
+                        alt="clear"
+                        width={24}
+                        height={24}
                     />
                 </button>
             )}

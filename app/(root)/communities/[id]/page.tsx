@@ -6,7 +6,6 @@ import Image from "next/image";
 import ThreadsTab from "@/components/shared/ThreadsTab";
 import {fetchCommunityDetails} from "@/lib/actions/community.actions";
 import UserCard from "@/components/cards/UserCard";
-import User from "@/lib/models/user.model";
 
 const page = async ({params}: { params: { id: string } }) => {
     const {id} = await params;
@@ -17,7 +16,6 @@ const page = async ({params}: { params: { id: string } }) => {
 
     const communityDetails = await fetchCommunityDetails(id);
     if (!communityDetails) return null;
-    
 
     return (
         <section>
@@ -46,7 +44,6 @@ const page = async ({params}: { params: { id: string } }) => {
                                 <p className="max-sm:hidden">{tab.label}</p>
 
                                 {tab.label === 'Threads' && (
-
                                     <p className="ml-1 rounded-sm bg-light-4 px-2 py-1
                                     !text-tiny-medium text-light-2">
                                         {communityDetails?.threads?.length}

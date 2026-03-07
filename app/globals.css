@@ -83,7 +83,11 @@
   }
 
   .pagination {
-    @apply mt-10 flex w-full items-center justify-center gap-5;
+    @apply mt-10 flex w-full items-center justify-center  gap-20;
+  }
+
+  .pagination_button {
+    @apply flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .rightsidebar {

@@ -1,13 +1,13 @@
 "use server";
 
-import { FilterQuery, SortOrder } from "mongoose";
-import { revalidatePath } from "next/cache";
+import {FilterQuery, SortOrder} from "mongoose";
+import {revalidatePath} from "next/cache";
 
 import Community from "../models/community.model";
 import Thread from "../models/thread.model";
 import User from "../models/user.model";
 
-import { connectToDB } from "../mongoose";
+import {connectToDB} from "../mongoose";
 
 // ============= Type Definitions =============
 
@@ -86,16 +86,14 @@ const buildUserSearchQuery = (
 /**
  * Fetch a single user by ID with their communities
  */
-export async function fetchUser(userId: string): Promise<UserDocument | null> {
+export async function fetchUser(userId: string): Promise<UserDocument | null | undefined> {
     try {
         await connectToDB();
 
-        const user = await User.findOne({ id: userId }).populate({
+        return await User.findOne({id: userId}).populate({
             path: "communities",
             model: Community,
         });
-
-        return user;
     } catch (error) {
         handleError("fetchUser", error);
     }
@@ -170,7 +168,7 @@ export async function fetchUserPosts(userId: string) {
  */
 export async function fetchUsers(
     params: FetchUsersParams
-): Promise<FetchUsersResult> {
+) {
     const {
         userId,
         searchString = "",
@@ -210,8 +208,13 @@ export async function getActivity(userId: string) {
     try {
         await connectToDB();
 
-        // Find all threads created by the user
-        const userThreads = await Thread.find({ author: userId });
+        // Resolve the user's Mongo _id (User.id stores the Clerk ID string)
+        const userDoc = await User.findOne({ id: userId }, { _id: 1 });
+        if (!userDoc) return [];
+        const userObjectId = userDoc._id;
+
+        // Find all threads created by the user (using Mongo _id)
+        const userThreads = await Thread.find({ author: userObjectId });
 
         // Collect all child thread IDs
         const childThreadIds = userThreads.flatMap((thread) => thread.children);
@@ -223,7 +226,7 @@ export async function getActivity(userId: string) {
         // Find replies from other users
         const replies = await Thread.find({
             _id: { $in: childThreadIds },
-            author: { $ne: userId },
+            author: { $ne: userObjectId },
         }).populate({
             path: "author",
             model: User,

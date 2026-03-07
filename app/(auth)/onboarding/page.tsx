@@ -13,12 +13,12 @@ async function Page() {
     if (userInfo?.onboarded) redirect("/");
 
     const userData = {
-        id: user?.id,
-        objectId: userInfo?.id,
-        username: userInfo ? userInfo?.username : user?.username,
-        name: userInfo ? userInfo?.name : user?.firstName ?? "",
-        bio: userInfo ? userInfo?.bio : "",
-        image: userInfo ? userInfo?.image : user?.imageUrl,
+        id: String(user?.id),
+        objectId: String(userInfo?.id ?? ""),
+        username: (userInfo?.username ?? user?.username ?? "") as string,
+        name: (userInfo?.name ?? user?.firstName ?? "") as string,
+        bio: (userInfo?.bio ?? "") as string,
+        image: (userInfo?.image ?? user?.imageUrl ?? "") as string,
     }
     return (
         <main className="mx-auto flex max-w-3xl flex-col justify-start px-10 py-20">

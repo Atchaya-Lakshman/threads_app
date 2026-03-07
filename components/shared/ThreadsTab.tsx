@@ -1,6 +1,5 @@
 import {fetchUserPosts} from "@/lib/actions/user.actions";
 import {redirect} from "next/navigation";
-import Thread from "@/lib/models/thread.model";
 import ThreadCard from "@/components/cards/ThreadCard";
 import {fetchCommunityPosts} from "@/lib/actions/community.actions";
 
@@ -24,8 +23,6 @@ const ThreadsTab = async ({
 
     if (!result) redirect("/")
 
-    
-
     return (
         <section className="mt-9 lex flex-col gap-10">
             {result.threads.map((thread: any) => (
@@ -37,7 +34,7 @@ const ThreadsTab = async ({
                     content={thread.text}
                     author={
                         accountType === "User"
-                            ? { name: result.name, image: result.image, id: result.id }
+                            ? {name: result.name, image: result.image, id: result.id}
                             : {
                                 name: thread.author.name,
                                 image: thread.author.image,
@@ -47,7 +44,7 @@ const ThreadsTab = async ({
                     community={thread.community}
                     createdAt={thread.createdAt}
                     comments={thread.children}
-                    initialLikes={(thread.likes || []).map((like: any) => 
+                    initialLikes={(thread.likes || []).map((like: any) =>
                         typeof like === 'string' ? like : String(like)
                     )}
                 />

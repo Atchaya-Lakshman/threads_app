@@ -24,7 +24,7 @@ const page = async ({params}: { params: { id: string } }) => {
                 <ThreadCard
                     key={thread._id}
                     id={thread._id}
-                    currentUserId={user?.id || ""}
+                    currentUserId={String(userInfo?.id)}
                     parentId={thread.parentId}
                     content={thread.text}
                     author={thread.author}
@@ -41,8 +41,8 @@ const page = async ({params}: { params: { id: string } }) => {
             <div className="mt-7">
                 <Comment
                     threadId={id}
-                    currentUserImg={userInfo.image}
-                    currentUserId={JSON.stringify(userInfo._id)}
+                    currentUserImg={userInfo?.image}
+                    currentUserId={String(userInfo?.id)}
                 />
             </div>
 

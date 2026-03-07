@@ -132,8 +132,8 @@ export function validationErrorResponse(
 ): NextResponse<
     ApiError & { validationErrors?: Record<string, string[]> }
 > {
-    const response = {
-        success: false,
+    const response: ApiError & { validationErrors?: Record<string, string[]> } = {
+        success: false as const,
         message,
         error: "Validation failed",
         timestamp: new Date().toISOString(),

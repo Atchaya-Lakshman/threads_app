@@ -13,7 +13,7 @@ import {z} from "zod";
 
 interface Props {
     threadId: string,
-    currentUserImg: string
+    currentUserImg?: string | undefined,
     currentUserId: string
 }
 
@@ -50,7 +50,7 @@ const Comment = ({threadId, currentUserImg, currentUserId}: Props) => {
                         <FormItem className='flex w-full items-center gap-3'>
                             <FormLabel>
                                 <Image
-                                    src={currentUserImg}
+                                    src={currentUserImg || '/assets/user.svg'}
                                     alt='current_user'
                                     width={48}
                                     height={48}

@@ -24,8 +24,8 @@ const page = async ({params}: { params: { id: string } }) => {
                 authUserId={user.id}
                 name={userInfo.name}
                 username={userInfo.username}
-                imgUrl={userInfo.image}
-                bio={userInfo.bio}
+                imgUrl={userInfo.image ?? ""}
+                bio={userInfo.bio ?? ""}
             />
 
             <div className="mt-9">
@@ -43,7 +43,6 @@ const page = async ({params}: { params: { id: string } }) => {
                                 <p className="max-sm:hidden">{tab.label}</p>
 
                                 {tab.label === 'Threads' && (
-
                                     <p className="ml-1 rounded-sm bg-light-4 px-2 py-1
                                     !text-tiny-medium text-light-2">
                                         {userInfo?.threads?.length}
@@ -60,7 +59,7 @@ const page = async ({params}: { params: { id: string } }) => {
                                 currentUserId={user.id}
                                 accountId={userInfo.id}
                                 accountType="User"
-                           />
+                            />
                         </TabsContent>
                     ))}
                 </Tabs>
