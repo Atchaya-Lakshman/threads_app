@@ -32,7 +32,7 @@
 
 ### 1. Clone the repository
 ```bash
-git clone [https://github.com/Atchaya-Lakshman/threads_app.git](https://github.com/Atchaya-Lakshman/threads_app.git)
+git clone https://github.com/Atchaya-Lakshman/threads_app.git
 cd threads_app
 ```
 
